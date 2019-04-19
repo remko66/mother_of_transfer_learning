@@ -19,13 +19,18 @@ The image dir should look like this for training:
 
 images
 --label1
+
 -----imglabel1
+
 -----imglabel1
------imglabel1
+
+
 --label2
+
 -----imglabel2
+
 -----imglabel2
------imglabel2
+
 
 If you ever have done anything with image recognition you will recognize this structure. Else google how to put images in dirs for image recognition. Almost everybody uses this structure.
 
