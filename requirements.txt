@@ -1,0 +1,7 @@
+install keras 2.x
+install opencv
+install tensorflow
+
+(I think that is it)
+
+You can only use channel last backends with keras (like tensorflow)
