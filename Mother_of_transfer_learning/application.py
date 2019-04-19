@@ -1,11 +1,9 @@
+import os
 import cv2
 import keras
 import numpy as np
 from keras.layers import Input
 from keras.models import load_model
-import numpy as np
-import os
-
 from keras.preprocessing.image import ImageDataGenerator
 
 
@@ -27,7 +25,7 @@ class application:
         self.shape = shape
         self.application = application
 
-    def getinstance(self, trainable=False, loadfrom="",cancreate=True):
+    def getinstance(self, trainable=False, loadfrom="", cancreate=True):
         if not loadfrom == "":
             instance = self.loadmodelinstance(loadfrom)
         else:
@@ -53,12 +51,15 @@ class application:
         return self.preprocess(data_upscaled)
 
     def loadmodelinstance(self, saveloadpath):
-        self.instance =load_model(saveloadpath)
+        p = saveloadpath
+        if not "." in p:
+            p += self.defaultext
+        self.instance = load_model(p)
         return self.instance
 
-    def getApplicationByName(self, name, saveloadpath='',hastoload=False):
+    def getApplicationByName(self, name, saveloadpath='', hastoload=False):
         res = None
-        loaded=False
+        loaded = False
         for a in self.getall():
             if a.name.lower() == name.lower():
                 res = a
@@ -66,9 +67,9 @@ class application:
                     res.saveloadpath = saveloadpath
                     if os.path.exists(saveloadpath):
                         res.loadmodelinstance(saveloadpath)
-                        loaded=True
+                        loaded = True
         if hastoload and not loaded:
-            raise Exception('Model could not be loaded '+saveloadpath)
+            raise Exception('Model could not be loaded ' + saveloadpath)
         return res
 
     def getall(self):
@@ -82,6 +83,12 @@ class application:
                                (224, 224, 3)]
         models['DenseNet201'] = [keras.applications.densenet.DenseNet201, keras.applications.densenet.preprocess_input,
                                  (224, 224, 3)]
+
+        models['DenseNet121'] = [keras.applications.densenet.DenseNet121, keras.applications.densenet.preprocess_input,
+                                 (224, 224, 3)]
+
+        models['DenseNet169'] = [keras.applications.densenet.DenseNet169, keras.applications.densenet.preprocess_input,
+                                 (224, 224, 3)]
         models['NASNetMobile'] = [keras.applications.nasnet.NASNetMobile, keras.applications.nasnet.preprocess_input,
                                   (224, 224, 3)]
         models['Xception'] = [keras.applications.xception.Xception, keras.applications.xception.preprocess_input,
@@ -89,13 +96,21 @@ class application:
         models['InceptionResNetV2'] = [keras.applications.inception_resnet_v2.InceptionResNetV2,
                                        keras.applications.inception_resnet_v2.preprocess_input, (299, 299, 3)]
 
-        import os
+        models['ResNet50'] = [keras.applications.resnet50.resnet50,
+                              keras.applications.resnet50.preprocess_input, (224, 224, 3)]
+
+        models['NASNetLarge'] = [keras.applications.nasnet.NASNetLarge,
+                                 keras.applications.nasnet.preprocess_input, (331, 331, 3)]
+
+        models['NASNetLarge'] = [keras.applications.mobilenetv2.MobileNetV2,
+                                 keras.applications.mobilenetv2.preprocess_input, (331, 331, 3)]
 
         if not os.path.exists('models'):
             os.makedirs('models')
         aps = []
         for k, v in models.items():
             app = application()
+            app.input_tensor = Input(shape=v[2])
             app.name = k
             app.application = v[0]
             app.preprocces_func = v[1]
@@ -108,35 +123,34 @@ class application:
         if not modelpath == "":
             self.loadmodelinstance(modelpath)
         if self.instance == None:
-            return "error","error"
+            return "error", "error"
         image = cv2.imread(imagepath)
         image = image.reshape((1, image.shape[0], image.shape[1], image.shape[2]))
         image = self.resizeAndPreprocess(image)
         res = self.instance.predict(image)
-        am=np.argmax(res)
-        return am,res
+        am = np.argmax(res)
+        return am, res
 
-    def makeinputmulti(self,apps,x):
+    def makeinputmulti(self, apps, x):
         input = []
         for m in apps:
             x = m.resizeAndPreprocess(np.copy(x))
             input.append(x)
         return input
 
-    def inference_combined(self,applist,SavePathCombinedModel,imagepath):
-        pre=[]
+    def inference_combined(self, applist, SavePathCombinedModel, imagepath):
+        pre = []
         for app in applist:
             pre.append(app.preprocces_func)
-        model=load_model(SavePathCombinedModel)
+        model = load_model(SavePathCombinedModel)
         image = cv2.imread(imagepath)
         image = image.reshape((1, image.shape[0], image.shape[1], image.shape[2]))
         x = application().makeinputmulti(pre, image)
-        res =model.predict(x)
-        am=np.argmax(res)
-        return am,res
+        res = model.predict(x)
+        am = np.argmax(res)
+        return am, res
 
-
-    def getGenerators(self,imageCollectionPath,batch_size=32,split=0.2):
+    def getGenerators(self, imageCollectionPath, batch_size=32, split=0.2):
         datagen = ImageDataGenerator(validation_split=split, shear_range=0.2, horizontal_flip=True)
         train_generator = datagen.flow_from_directory(
             imageCollectionPath,
@@ -155,16 +169,16 @@ class application:
             shuffle=True,
             subset='validation'
         )
-        return train_generator,test_generator
+        return train_generator, test_generator
 
     def AllAvailableModelsAsList(self):
-        a=self.getall()
-        names=[]
+        a = self.getall()
+        names = []
         for app in a:
             names.append(app.name)
         return names
 
-    def predictionNumberToLabel(self,dict,nr):
+    def predictionNumberToLabel(self, dict, nr):
         prediction = "Unknown"
         for k, v in dict.items():
             if v == nr:

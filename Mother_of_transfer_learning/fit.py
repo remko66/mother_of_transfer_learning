@@ -5,7 +5,6 @@ from keras.layers import GlobalAveragePooling2D, Dense, concatenate
 from keras.models import Model
 from Mother_of_transfer_learning.application import application
 
-
 class fit:
     def __init__(self,datagenerator_train,nrimages,nrcats,datageneretor_test=None,batch_size=32,epochs=5,use_tensorboard=True,tensordir='log/'):
 
@@ -72,7 +71,7 @@ class fit:
             p=app.saveloadpath
             if not "." in p:
                 p+=app.defaultext
-            model.save(app.saveloadpath)
+            model.save(p)
         return model,lastacc, lastloss
 
 
@@ -121,6 +120,9 @@ class fit:
         else:
             lastloss,lastacc=0
         if not saveas=="":
-            model.save(saveas)
+            p = saveas
+            if not "." in p:
+                p += application().defaultext
+            model.save(p)
         return lastacc, lastloss
 

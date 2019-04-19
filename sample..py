@@ -22,7 +22,7 @@ def trainall():  # train all possible applications on a given set of images
     fitnu = fit(train_generator, images, cats, datageneretor_test=test_generator)
     for app in application().getall():
         app.saveloadpath = "models_desk/" + app.name
-        app.tensordir = base_dir + 'logs_desk/'
+        fitnu.tensordir = base_dir + 'logs_desk/'
         if not os.path.isfile(app.saveloadpath):
             print("training " + app.name)
             model, lastacc, lastloss = fitnu.fitone(app)
@@ -49,7 +49,7 @@ print(nr, full)
 
 
 def traincombo(apps, saveas='models/combination1',
-               logdir=base_dir + "log/"):  # combine more then one application/model to one super transfer learning model...
+               logdir=base_dir + "logs_desk/"):  # combine more then one application/model to one super transfer learning model...
     fitnu = fit(train_generator, images, cats, datageneretor_test=test_generator)
     fitnu.tensordir = logdir
     fitnu.fitmodels(apps, saveas=saveas)
