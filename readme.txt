@@ -96,5 +96,8 @@ Check getall in application and you will see what i mean. Feel free to add more 
 If i have some time will document the classes so you don't have to spy in the code(but it should be simple enough).
 
 If you need any coding done (specially neural nets or data science stuff, but boring andoid apps are oke also): please let me know:
+
 Whatsapp: +628158370088 (English, dutch or a little bit of bahasa indonesia)
 Remko66@gmail.com
+
+You can not use it from the command line, it is meant as a package to be included in your project.
