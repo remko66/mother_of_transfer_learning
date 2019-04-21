@@ -27,18 +27,18 @@ class application:
 
     def getinstance(self, trainable=False, loadfrom="", cancreate=True):
         if not loadfrom == "":
-            instance = self.loadmodelinstance(loadfrom)
+            self.loadmodelinstance(loadfrom, trainable=trainable)
         else:
             if cancreate:
                 instance = self.application(include_top=False, weights='imagenet', input_tensor=self.input_tensor,
                                             input_shape=self.shape)
 
-            if not trainable:
-                instance.trainable = False
-                for layer in instance.layers:
-                    layer.trainable = False
+        if not trainable:
+            instance.trainable = False
+            for layer in instance.layers:
+                layer.trainable = False
         self.instance = instance
-        return instance
+        return self.instance
 
     def preprocess(self, x):
         return self.preprocces_func(x)
@@ -50,15 +50,24 @@ class application:
             data_upscaled[i] = large_img
         return self.preprocess(data_upscaled)
 
-    def loadmodelinstance(self, saveloadpath):
+    def loadmodelinstance(self, saveloadpath, trainable=False):
+        res = False
         p = saveloadpath
         if not os.path.exists(saveloadpath):
             if not "." in p:
                 p += self.defaultext
-        self.instance = load_model(p)
-        return self.instance
+        if os.path.exists(p):
+            self.instance = load_model(p)
+            res=True
+        else:
+            res = False
+        if not trainable and res:
+            self.instance.trainable = False
+            for layer in self.instance.layers:
+                layer.trainable = False
+        return res
 
-    def getApplicationByName(self, name, saveloadpath='', hastoload=False):
+    def getApplicationByName(self, name, saveloadpath='', hastoload=False, trainable=False):
         res = None
         loaded = False
         for a in self.getall():
@@ -66,11 +75,12 @@ class application:
                 res = a
                 if not saveloadpath == '':
                     res.saveloadpath = saveloadpath
-                    if os.path.exists(saveloadpath):
-                        res.loadmodelinstance(saveloadpath)
-                        loaded = True
+                    loaded = res.loadmodelinstance(saveloadpath, trainable=trainable)
+
+                break
         if hastoload and not loaded:
             raise Exception('Model could not be loaded ' + saveloadpath)
+
         return res
 
     def getall(self):
@@ -132,11 +142,11 @@ class application:
         am = np.argmax(res)
         return am, res
 
-    def makeinputmulti(self, apps, x):
+    def makeinputmulti(self, applist, x):
         input = []
-        for m in apps:
-            x = m.resizeAndPreprocess(np.copy(x))
-            input.append(x)
+        for app in applist:
+            newx = app.resizeAndPreprocess(np.copy(x))
+            input.append(newx)
         return input
 
     def inference_combined(self, applist, SavePathCombinedModel, imagepath):
@@ -186,14 +196,26 @@ class application:
                 prediction = k
         return prediction
 
-    def Evaluate_one_saved(self, train_generator,savepath):
-        return self.Evaluate_one(train_generator,self.loadmodelinstance(savepath))
+    def Evaluate_one_saved(self, train_generator, savepath):
+        self.loadmodelinstance(savepath)
+        return self.Evaluate_one(train_generator)
 
-    def Evaluate_one(self,train_generator):
+    def Evaluate_one(self, train_generator):
         x, y = train_generator.next()
         x = self.resizeAndPreprocess(x)
+        history = self.instance.evaluate(x, y, verbose=1)
+        #print(self.instance.metrics_names)
+        #print(history)
+        lastacc = history[1]
+        lastloss = history[0]
+        return lastacc, lastloss
+
+    def Evaluate_combined(self, train_generator, apps, loadfrompath):
+        self.loadmodelinstance(loadfrompath)
+        x, y = train_generator.next()
+        x = self.makeinputmulti(apps, x)
         history = self.instance.evaluate(x, y, verbose=1)
         print(history)
         lastacc = history[1]
         lastloss = history[0]
-        return lastacc,lastloss
+        return lastacc, lastloss
