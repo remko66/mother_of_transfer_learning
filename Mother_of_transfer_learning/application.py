@@ -52,8 +52,9 @@ class application:
 
     def loadmodelinstance(self, saveloadpath):
         p = saveloadpath
-        if not "." in p:
-            p += self.defaultext
+        if not os.path.exists(saveloadpath):
+            if not "." in p:
+                p += self.defaultext
         self.instance = load_model(p)
         return self.instance
 
@@ -102,8 +103,8 @@ class application:
         models['NASNetLarge'] = [keras.applications.nasnet.NASNetLarge,
                                  keras.applications.nasnet.preprocess_input, (331, 331, 3)]
 
-        models['NASNetLarge'] = [keras.applications.mobilenetv2.MobileNetV2,
-                                 keras.applications.mobilenetv2.preprocess_input, (331, 331, 3)]
+        models['MobileNetV2'] = [keras.applications.mobilenetv2.MobileNetV2,
+                                 keras.applications.mobilenetv2.preprocess_input, (224, 224, 3)]
 
         if not os.path.exists('models'):
             os.makedirs('models')
@@ -184,3 +185,15 @@ class application:
             if v == nr:
                 prediction = k
         return prediction
+
+    def Evaluate_one_saved(self, train_generator,savepath):
+        return self.Evaluate_one(train_generator,self.loadmodelinstance(savepath))
+
+    def Evaluate_one(self,train_generator):
+        x, y = train_generator.next()
+        x = self.resizeAndPreprocess(x)
+        history = self.instance.evaluate(x, y, verbose=1)
+        print(history)
+        lastacc = history[1]
+        lastloss = history[0]
+        return lastacc,lastloss
