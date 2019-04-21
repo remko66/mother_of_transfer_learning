@@ -5,7 +5,7 @@ from Mother_of_transfer_learning import fit
 base_dir = './'
 train_dir = base_dir+"images"
 images = 764
-epochs = 1
+epochs = 20
 batch_size = 32
 
 #what are we going to do?
@@ -69,7 +69,7 @@ def trainone(name):
 def traincombo(apps, saveas='models/combination1',epochs=epochs,
                logdir=base_dir + "logs_combo/",combtype="concatenate"):  # combine more then one application/model to one super transfer learning model...
     fitnu = fit(train_generator, images, cats, datageneretor_test=test_generator,epochs=epochs)
-    fitnu.tensordir = "logs_combo'"+combtype
+    fitnu.tensordir = base_dir+"logs_combo/"+combtype
     fitnu.fitmodels(apps, saveas=saveas,combtype=combtype)
 
 
@@ -82,10 +82,12 @@ if traincombo:
     applist.append(app)
     app = application().getApplicationByName("DenseNet201")
     applist.append(app)
-    traincombo(applist,saveas="models/combDenseNet201_InceptionV3_concat",combtype='concatenate')
-   # traincombo(applist, saveas="models/combDenseNet201_InceptionV3_add", combtype='add')
-   # traincombo(applist, saveas="models/combDenseNet201_InceptionV3_average", combtype='average')
-   # traincombo(applist, saveas="models/combDenseNet201_InceptionV3_multiply", combtype='multiply')
+    app=application().getApplicationByName('Xception')
+    applist.append(app)
+    traincombo(applist,saveas=base_dir+"models/combDenseNet201_InceptionV3_concat",combtype='concatenate')
+    traincombo(applist, saveas=base_dir+"models/combDenseNet201_InceptionV3_add", combtype='add')
+    traincombo(applist, saveas=base_dir+"models/combDenseNet201_InceptionV3_average", combtype='average')
+    traincombo(applist, saveas=base_dir+"models/combDenseNet201_InceptionV3_multiply", combtype='multiply')
 
 
 #evaluate some single models
@@ -97,14 +99,16 @@ if evaluatesome:
 #evaluate model combo's
 if Evaluatecombo:
     applist = []
-    app = application().getApplicationByName("InceptionV3", "models_desk/InceptionV3_v2", hastoload=True)
+    app = application().getApplicationByName("InceptionV3")
     applist.append(app)
-    app = application().getApplicationByName("DenseNet201", "models_desk/DenseNet201_v2", hastoload=True)
+    app = application().getApplicationByName("DenseNet201")
+    applist.append(app)
+    app = application().getApplicationByName('Xception')
     applist.append(app)
     print("eval combined concat",evaluate_combined(applist,"models/combDenseNet201_InceptionV3_concat",test_generator))
-    #print("eval combined add", evaluate_combined(applist, "models/combDenseNet201_InceptionV3_add", test_generator))
-    #print("eval combined average", evaluate_combined(applist, "models/combDenseNet201_InceptionV3_average", test_generator))
-    #print("eval combined multiply", evaluate_combined(applist, "models/combDenseNet201_InceptionV3_multiply", test_generator))
+    print("eval combined add", evaluate_combined(applist, "models/combDenseNet201_InceptionV3_add", test_generator))
+    print("eval combined average", evaluate_combined(applist, "models/combDenseNet201_InceptionV3_average", test_generator))
+    print("eval combined multiply", evaluate_combined(applist, "models/combDenseNet201_InceptionV3_multiply", test_generator))
 
 
 # inference

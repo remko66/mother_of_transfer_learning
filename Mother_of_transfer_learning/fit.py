@@ -108,7 +108,7 @@ class fit:
         preds = Dense(self.nrcats,activation="softmax")(pre)
         model = Model(inputs=input, outputs=preds)
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-        self.maketensorboard(model, self.tensordir + "combined")
+        self.maketensorboard(model, self.tensordir )
         steps = round(self.nrimages / self.batchsize)
         batch_id = 1
         for e in range(self.epochs):
