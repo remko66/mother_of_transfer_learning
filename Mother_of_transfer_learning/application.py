@@ -113,8 +113,8 @@ class application:
         models['NASNetLarge'] = [keras.applications.nasnet.NASNetLarge,
                                  keras.applications.nasnet.preprocess_input, (331, 331, 3)]
 
-        models['MobileNetV2'] = [keras.applications.mobilenetv2.MobileNetV2,
-                                 keras.applications.mobilenetv2.preprocess_input, (224, 224, 3)]
+        #models['MobileNetV2'] = [keras.applications.mobilenetv2.MobileNetV2,
+        #                         keras.applications.mobilenetv2.preprocess_input, (224, 224, 3)]
 
         if not os.path.exists('models'):
             os.makedirs('models')
